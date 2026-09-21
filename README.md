@@ -8,7 +8,8 @@ Spec: `season-lifecycle.md` and `registration-spec.md` in the "flag football v2"
 
 ## Stack
 
-Next.js 15 (App Router) · Supabase (Postgres, Auth, Storage) · Tailwind 4 · deploy on Vercel.
+Next.js 15 (App Router) · Supabase (Postgres, Auth, Storage) · Tailwind 4 · hosted on Cloudflare Workers
+via the OpenNext adapter (`@opennextjs/cloudflare`).
 
 ## Run locally
 
@@ -17,6 +18,19 @@ cp .env.example .env.local   # fill in the Supabase URL and publishable key
 npm install
 npm run dev
 ```
+
+## Deploy (Cloudflare Workers)
+
+Config lives in `wrangler.jsonc` and `open-next.config.ts`. The Worker is named `playmakers-platform`.
+
+- **Automatic:** the Cloudflare Worker is connected to this GitHub repo (Workers Builds). Every push to
+  `main` builds with `npx opennextjs-cloudflare build` and deploys with `npx opennextjs-cloudflare deploy`.
+- **Manual:** `npm run deploy` (runs `wrangler login` the first time).
+- `npm run preview` builds and runs the Worker locally in the Cloudflare runtime.
+
+`NEXT_PUBLIC_*` values are baked in at build time, so set `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as **build variables** in the Worker's Settings > Build.
+Compressed Worker size is about 1.3 MB, under the 3 MB free-plan limit.
 
 ## Database
 
@@ -53,7 +67,7 @@ select id, 'cheyenne@example.com', 'owner' from organizations where slug = 'play
 ## Before real players get invited
 
 1. **Auth URLs**: Supabase dashboard > Authentication > URL Configuration. Set Site URL to the
-   production domain and add `https://<domain>/auth/callback` (and `http://localhost:3000/auth/callback`
+   production domain (e.g. `https://playmakers-platform.<account>.workers.dev`) and add `https://<domain>/auth/callback` (and `http://localhost:3000/auth/callback`
    for local work) to Redirect URLs.
 2. **Email sending**: Supabase's built-in sender is rate limited to a few emails an hour. Connect
    custom SMTP (Resend, Postmark) with a verified sending domain before inviting a league.
