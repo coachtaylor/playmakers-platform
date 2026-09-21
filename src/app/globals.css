@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
+/* PlayMakers Club brand: red, black, white. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --pmc-red: #c8102e;
+  --pmc-red-dark: #9e0c24;
+  --pmc-ink: #141414;
+  --pmc-muted: #5f6368;
+  --pmc-line: #e4e4e7;
+  --pmc-surface: #ffffff;
+  --pmc-ground: #f5f5f4;
+  --pmc-good: #1b7f4c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-pmc-red: var(--pmc-red);
+  --color-pmc-red-dark: var(--pmc-red-dark);
+  --color-ink: var(--pmc-ink);
+  --color-muted: var(--pmc-muted);
+  --color-line: var(--pmc-line);
+  --color-surface: var(--pmc-surface);
+  --color-ground: var(--pmc-ground);
+  --color-good: var(--pmc-good);
+  --font-sans: var(--font-body), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-display-face), "Arial Narrow", Impact, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--pmc-ground);
+  color: var(--pmc-ink);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pmc-red);
+  outline-offset: 2px;
 }
