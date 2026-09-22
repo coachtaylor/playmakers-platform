@@ -85,6 +85,49 @@ begin
    where lower(u.email) = lower(m.email) and m.user_id is null;
 end $$;
 
+-- Registration terms for the demo program. Dates are placeholders from the mockups
+-- (season dates, open play, draft night, roster cap) until Cheyenne confirms them.
+update public.programs p
+   set skill_level = 'All levels',
+       blurb = 'You register on your own. Tell us what you play and who you want to play with '
+               || '(up to 2 teammates). Come to open play so captains can see you, then captains '
+               || 'draft balanced teams. No captain option here: teams do not exist until draft night.',
+       game_weeks = 8,
+       roster_cap = 15,
+       registration_opens_at = '2026-08-01 00:00:00-07',
+       registration_closes_at = '2026-09-29 23:59:00-07',
+       open_play_at = '2026-09-30 19:00:00-07',
+       draft_at = '2026-10-05 19:00:00-07',
+       first_game_at = '2026-10-07 19:00:00-07',
+       fees = jsonb_build_object(
+         'currency', 'USD',
+         'amount_cents', 7900,
+         'plan', jsonb_build_object('installments', 2, 'amount_cents', 3950, 'second_due_on', '2026-10-14')
+       )
+ where p.name like 'Women''s 5v5%';
+
+-- Placeholder agreement text. Replace the bodies with the real documents before any
+-- real player accepts one; acceptances are recorded against the version id.
+insert into public.waiver_versions (org_id, kind, version_label, body)
+select o.id, 'liability', '2026-09-01',
+       E'[PLACEHOLDER LIABILITY WAIVER — replace before real players register.]\n\n'
+       'Assumption of risk: flag football and kickball are physical activities and injury is '
+       'possible. I accept that risk and play voluntarily.\n\n'
+       'Release of liability: I release PlayMakers Club, its staff, officials and facility '
+       'partners from claims arising from ordinary negligence in connection with my participation.\n\n'
+       'Medical authorization: if I am injured and cannot consent, I authorize PlayMakers Club to '
+       'arrange emergency medical care at my expense.'
+  from public.organizations o where o.slug = 'playmakers'
+on conflict (org_id, kind, version_label) do nothing;
+
+insert into public.waiver_versions (org_id, kind, version_label, body)
+select o.id, 'refund_policy', '2026-09-01',
+       '100% refund within 72 hours of purchase if that is 48 or more hours before the season '
+       'starts. After that, site credit on a sliding scale: 100% at 15 or more days out, 75% at 8 '
+       'to 14 days, 25% at 3 to 7 days, 0% inside 48 hours. A $50 admin fee applies to refunds.'
+  from public.organizations o where o.slug = 'playmakers'
+on conflict (org_id, kind, version_label) do nothing;
+
 -- Demo jersey numbers and positions (fictional).
 with ranked as (
   select rs.id, t.name as team, row_number() over (partition by rs.team_id order by m.email) as n

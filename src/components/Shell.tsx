@@ -4,33 +4,40 @@ export function Shell({
   children,
   isAdmin = false,
   signedIn = true,
+  action,
+  padded = true,
 }: {
   children: React.ReactNode;
   isAdmin?: boolean;
   signedIn?: boolean;
+  /** Replaces the sign-out nav, e.g. "Save and exit" during registration. */
+  action?: React.ReactNode;
+  /** Off when the page lays out its own full-width bars (the registration steps). */
+  padded?: boolean;
 }) {
   return (
-    <div className="min-h-dvh">
+    <div className="flex min-h-dvh flex-col">
       <header className="bg-ink text-white">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-3">
           <Link href="/home" className="font-display text-lg">
             PlayMakers <span className="text-pmc-red">Club</span>
           </Link>
-          {signedIn && (
-            <nav className="flex items-center gap-4 text-sm">
-              {isAdmin && (
-                <Link href="/admin" className="text-white/80 hover:text-white">
-                  Commissioner
-                </Link>
-              )}
-              <form action="/auth/signout" method="post">
-                <button className="text-white/80 hover:text-white">Sign out</button>
-              </form>
-            </nav>
-          )}
+          {action ??
+            (signedIn && (
+              <nav className="flex items-center gap-4 text-sm">
+                {isAdmin && (
+                  <Link href="/admin" className="text-white/80 hover:text-white">
+                    Commissioner
+                  </Link>
+                )}
+                <form action="/auth/signout" method="post">
+                  <button className="text-white/80 hover:text-white">Sign out</button>
+                </form>
+              </nav>
+            ))}
         </div>
       </header>
-      <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
+      <main className={`mx-auto flex w-full max-w-2xl flex-col ${padded ? "px-4 py-6" : ""} flex-1`}>{children}</main>
     </div>
   );
 }
