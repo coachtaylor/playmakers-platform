@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Card, Shell, StatusPill } from "@/components/Shell";
 import { requireSession } from "@/lib/session";
-import { LEAGUE_TZ, formatLeagueTime, votingStatus, type Tally } from "@/lib/types";
+import { LEAGUE_TZ, formatLeagueTime, formatPositions, votingStatus, type Tally } from "@/lib/types";
 import { saveVotingWindow, setPublished } from "./actions";
 import { SelectionToggle } from "./SelectionToggle";
 
@@ -163,6 +163,7 @@ export default async function AdminProgramPage({ params }: { params: Promise<{ p
                   <thead>
                     <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
                       <th className="py-2 pr-2 font-semibold">Pick</th>
+                      <th className="py-2 pr-2 font-semibold">#</th>
                       <th className="py-2 pr-2 font-semibold">Player</th>
                       <th className="py-2 pr-2 font-semibold">Team</th>
                       <th className="py-2 text-right font-semibold">Votes</th>
@@ -180,9 +181,13 @@ export default async function AdminProgramPage({ params }: { params: Promise<{ p
                             label={r.display_name}
                           />
                         </td>
-                        <td className="py-2 pr-2 font-medium">
-                          {r.display_name}
+                        <td className="py-2 pr-2 tabular-nums text-muted">{r.jersey_number ?? ""}</td>
+                        <td className="py-2 pr-2">
+                          <span className="font-medium">{r.display_name}</span>
                           {r.is_rookie && <span className="ml-1 text-xs text-muted">R</span>}
+                          {r.positions?.length > 0 && (
+                            <span className="block text-xs text-muted">{formatPositions(r.positions)}</span>
+                          )}
                         </td>
                         <td className="py-2 pr-2 text-muted">{r.team_name}</td>
                         <td className="py-2 text-right tabular-nums">{r.votes}</td>

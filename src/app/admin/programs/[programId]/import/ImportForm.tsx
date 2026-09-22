@@ -6,6 +6,15 @@ import { importRoster, type ImportRow } from "../actions";
 
 // Header names vary between exports; map the common spellings to our fields.
 const ALIASES: Record<keyof ImportRow, string[]> = {
+  jersey_number: ["jersey number", "jersey #", "jersey", "number", "#", "jersey_number"],
+  positions: [
+    "positions",
+    "position",
+    "positions played",
+    "positions i have played",
+    "preferred position",
+    "preferred position (offense)",
+  ],
   email: ["email", "email address", "player email", "e-mail"],
   first_name: ["first name", "firstname", "first_name", "player first name"],
   last_name: ["last name", "lastname", "last_name", "player last name"],
@@ -20,6 +29,14 @@ function normalize(h: string) {
 
 function truthy(v: string | undefined) {
   return ["y", "yes", "true", "1", "x"].includes((v ?? "").trim().toLowerCase());
+}
+
+// "WR, CB" / "WR/CB" / "QB;S" -> ["WR","CB"]
+function splitPositions(v: string | undefined) {
+  return (v ?? "")
+    .split(/[,/;|]/)
+    .map((p) => p.trim())
+    .filter((p) => p && p.toLowerCase() !== "n/a");
 }
 
 function mapRole(v: string | undefined) {
@@ -54,6 +71,8 @@ export function ImportForm({ programId }: { programId: string }) {
           team: find("team"),
           role: find("role"),
           is_rookie: find("is_rookie"),
+          jersey_number: find("jersey_number"),
+          positions: find("positions"),
         };
         setMissing(
           (["email", "first_name"] as const).filter((k) => !cols[k]).map((k) => (k === "email" ? "Email" : "First name")),
@@ -66,6 +85,8 @@ export function ImportForm({ programId }: { programId: string }) {
             team: (cols.team ? r[cols.team] : "")?.trim() ?? "",
             role: mapRole(cols.role ? r[cols.role] : ""),
             is_rookie: truthy(cols.is_rookie ? r[cols.is_rookie] : ""),
+            jersey_number: (cols.jersey_number ? r[cols.jersey_number] : "")?.trim() ?? "",
+            positions: splitPositions(cols.positions ? r[cols.positions] : ""),
           })),
         );
       },
@@ -105,8 +126,8 @@ export function ImportForm({ programId }: { programId: string }) {
           className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-ink file:px-3 file:py-2 file:font-semibold file:text-white"
         />
         <p className="text-xs text-muted">
-          Needs columns for email and first name. Last name, team, role (captain / player / free agent) and rookie (yes /
-          no) are used when present. Re-importing updates existing players instead of duplicating them.
+          Needs columns for email and first name. Last name, team, role (captain / player / free agent), rookie (yes /
+          no), jersey number and positions (e.g. &quot;WR, CB&quot;) are used when present. Re-importing updates existing players instead of duplicating them.
         </p>
       </div>
 
@@ -136,6 +157,7 @@ export function ImportForm({ programId }: { programId: string }) {
             <table className="w-full text-sm">
               <thead className="bg-ground text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
+                  <th className="p-2">#</th>
                   <th className="p-2">Name</th>
                   <th className="p-2">Email</th>
                   <th className="p-2">Team</th>
@@ -146,8 +168,12 @@ export function ImportForm({ programId }: { programId: string }) {
               <tbody>
                 {rows.slice(0, 8).map((r, i) => (
                   <tr key={i} className="border-t border-line">
+                    <td className="p-2 tabular-nums">{r.jersey_number}</td>
                     <td className="p-2">
                       {r.first_name} {r.last_name}
+                      {r.positions.length > 0 && (
+                        <span className="block text-xs text-muted">{r.positions.join(" / ")}</span>
+                      )}
                     </td>
                     <td className="p-2 text-muted">{r.email}</td>
                     <td className="p-2">{r.team}</td>

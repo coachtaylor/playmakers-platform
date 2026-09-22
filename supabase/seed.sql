@@ -84,3 +84,16 @@ begin
     from auth.users u
    where lower(u.email) = lower(m.email) and m.user_id is null;
 end $$;
+
+-- Demo jersey numbers and positions (fictional).
+with ranked as (
+  select rs.id, t.name as team, row_number() over (partition by rs.team_id order by m.email) as n
+    from public.roster_spots rs
+    join public.members m on m.id = rs.member_id
+    join public.teams t on t.id = rs.team_id
+)
+update public.roster_spots rs
+   set jersey_number = ((abs(hashtext(r.team)) % 20) + r.n * 7)::text,
+       positions = string_to_array((array['QB','WR,CB','WR','C,LB','Rusher','RB,S','WR,S','CB'])[((r.n - 1) % 8) + 1], ',')
+  from ranked r
+ where r.id = rs.id;

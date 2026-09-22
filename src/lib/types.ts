@@ -32,6 +32,8 @@ export type Candidate = {
   team_name: string | null;
   is_rookie: boolean;
   photo_path: string | null;
+  jersey_number: string | null;
+  positions: string[];
 };
 
 export type AwardCategory = {
@@ -53,6 +55,8 @@ export type Tally = {
   display_name: string;
   team_name: string | null;
   is_rookie: boolean;
+  jersey_number: string | null;
+  positions: string[];
   votes: number;
   selected: boolean;
 };
@@ -91,4 +95,9 @@ export function isEligible(c: Candidate, cat: Pick<AwardCategory, "eligibility">
   if (cat.eligibility === "rookie") return c.is_rookie;
   if (cat.eligibility === "veteran") return !c.is_rookie;
   return true;
+}
+
+/** "WR / CB", or "" when no positions are on file. */
+export function formatPositions(positions: string[] | null | undefined) {
+  return (positions ?? []).join(" / ");
 }

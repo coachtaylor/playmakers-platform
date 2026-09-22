@@ -2,8 +2,20 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { isEligible, type AwardCategory, type Candidate } from "@/lib/types";
+import { formatPositions, isEligible, type AwardCategory, type Candidate } from "@/lib/types";
 import { submitBallot } from "./actions";
+
+// Search by name, team, jersey number ("12" or "#12") or position ("qb").
+function matchesSearch(c: Candidate, q: string) {
+  if (!q) return true;
+  const number = q.replace(/^#/, "");
+  return (
+    c.display_name.toLowerCase().includes(q) ||
+    (c.team_name ?? "").toLowerCase().includes(q) ||
+    (c.jersey_number !== null && /^\d+$/.test(number) && c.jersey_number === number) ||
+    c.positions.some((p) => p.toLowerCase() === q)
+  );
+}
 
 export function BallotForm({
   programId,
@@ -81,7 +93,7 @@ export function BallotForm({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Name or team"
+          placeholder="Name, team, number or position"
           className="w-full rounded-md border border-line bg-white px-3 py-2.5"
         />
       </div>
@@ -94,7 +106,7 @@ export function BallotForm({
             (c) =>
               c.member_id !== myMemberId &&
               isEligible(c, cat) &&
-              (!q || c.display_name.toLowerCase().includes(q) || (c.team_name ?? "").toLowerCase().includes(q)),
+              matchesSearch(c, q),
           )}
           allCandidates={candidates}
           selected={picks[cat.id] ?? []}
@@ -177,23 +189,40 @@ function CategoryPicker({
             <div className="flex flex-wrap gap-2">
               {list.map((c) => {
                 const on = selected.includes(c.member_id);
+                const positions = formatPositions(c.positions);
                 return (
                   <button
                     key={c.member_id}
                     type="button"
                     aria-pressed={on}
+                    aria-label={`${c.display_name}${c.jersey_number ? `, number ${c.jersey_number}` : ""}${positions ? `, ${positions}` : ""}`}
                     disabled={!on && full}
                     onClick={() => onToggle(c.member_id)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                    className={`flex min-w-[9.5rem] items-center gap-2.5 rounded-lg border px-2.5 py-1.5 text-left transition ${
                       on
                         ? "border-pmc-red bg-pmc-red text-white"
                         : "border-line bg-white hover:border-ink disabled:cursor-not-allowed disabled:opacity-40"
                     }`}
                   >
-                    {c.display_name}
-                    {c.is_rookie && category.eligibility !== "rookie" && (
-                      <span className={`ml-1 text-xs ${on ? "text-white/80" : "text-muted"}`}>R</span>
-                    )}
+                    <span
+                      className={`font-display flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-base tabular-nums ${
+                        on ? "bg-white/15 text-white" : "bg-ink text-white"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {c.jersey_number ?? "–"}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold leading-tight">
+                        {c.display_name}
+                        {c.is_rookie && category.eligibility !== "rookie" && (
+                          <span className={`ml-1 text-xs font-normal ${on ? "text-white/80" : "text-muted"}`}>R</span>
+                        )}
+                      </span>
+                      <span className={`block text-xs leading-tight ${on ? "text-white/85" : "text-muted"}`}>
+                        {positions || "Position not listed"}
+                      </span>
+                    </span>
                   </button>
                 );
               })}

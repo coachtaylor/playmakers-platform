@@ -52,6 +52,8 @@ export type ImportRow = {
   team: string;
   role: string;
   is_rookie: boolean;
+  jersey_number: string;
+  positions: string[];
 };
 
 export async function importRoster(programId: string, rows: ImportRow[]) {
