@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth"];
+// /register is public as far as the middleware is concerned: the program page reads
+// program_public(), and each step redirects to sign-in itself so it can come back here.
+const PUBLIC_PATHS = ["/login", "/auth", "/register"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

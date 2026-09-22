@@ -83,7 +83,36 @@ select id, 'cheyenne@example.com', 'owner' from organizations where slug = 'play
 3. Watch turnout and tallies. Tick the players you're selecting in each category.
 4. Announce at the party, then **Publish results to players**.
 
+## Registration (DRAFT flow)
+
+`/register/[programId]` is the player-facing registration for a DRAFT program: program page,
+then six steps that each save before moving on (about you, player profile, teammate requests,
+sub availability, agreements, payment), then a confirmation. The program page is readable
+signed out; every step needs a login and comes back to the program page after sign-in.
+
+Design source: `design/mockups/*.dc.html` and `design/HANDOFF.md`. Shared form pieces live in
+`src/components/form.tsx`.
+
+Rules the schema enforces, not just the UI:
+
+- `qb_willing` is three states (yes / reluctant / no), never a boolean.
+- Height is two integers (`height_ft`, `height_in`).
+- At most 2 teammate requests per registration, and a request only counts when it is mutual.
+  Someone who hasn't registered is held by phone or handle and matched when they do.
+- Sub availability is off by default; turning it off clears the locations, nights and notice.
+- Media consent stays a member field, outside the waiver. Any value lets a player register.
+- Waivers are versioned; acceptance is recorded by version id with a timestamp and IP.
+- Jersey numbers are unique within a team (partial unique index on `roster_spots`).
+
+**Payment is a handoff, not a checkout.** `begin_payment_handoff()` records the plan, holds the
+spot for 15 minutes and returns the program's LeagueApps URL; the player comes back to
+`/register/[programId]/return`, which calls `complete_registration()`. Nothing verifies the
+payment — there is no webhook and no order lookup — and no money moves through this app.
+`credit_ledger` and `refund_requests` exist as records only. A program with no `payment_url`
+set shows `/register/[programId]/handoff` explaining that instead.
+
 ## Not built yet
 
-Media upload and tagging UI (tables, storage bucket and policies exist), highlight reels,
-open play evaluation, draft room, registration and payments.
+BYOT branch (schema and RPCs exist, screens do not), public homepage at `/`, commissioner
+registration list and QB supply counter, media upload and tagging UI (tables, storage bucket
+and policies exist), highlight reels, open play evaluation, draft room, real payments.

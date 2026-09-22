@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { sendLoginLink, type LoginState } from "./actions";
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(sendLoginLink, {});
 
   if (state.sentTo) {
@@ -20,6 +20,7 @@ export function LoginForm() {
 
   return (
     <form action={action} className="space-y-4">
+      {next && <input type="hidden" name="next" value={next} />}
       <div className="space-y-1">
         <label htmlFor="email" className="block text-sm font-semibold">
           Email

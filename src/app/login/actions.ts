@@ -14,10 +14,17 @@ export async function sendLoginLink(_prev: LoginState, formData: FormData): Prom
   const h = await headers();
   const origin = h.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+  // Only ever come back to a path on this site, never to a URL someone passed in.
+  const next = String(formData.get("next") ?? "");
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "";
+  const callback = safeNext
+    ? `${origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
+    : `${origin}/auth/callback`;
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: `${origin}/auth/callback` },
+    options: { emailRedirectTo: callback },
   });
 
   if (error) {

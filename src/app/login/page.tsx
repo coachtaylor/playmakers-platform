@@ -1,8 +1,12 @@
 import { Shell, Card } from "@/components/Shell";
 import { LoginForm } from "./LoginForm";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string }>;
+}) {
+  const { error, next } = await searchParams;
   return (
     <Shell signedIn={false}>
       <div className="space-y-6 pt-6">
@@ -19,7 +23,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           </p>
         )}
         <Card>
-          <LoginForm />
+          <LoginForm next={next} />
         </Card>
       </div>
     </Shell>
