@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Draft registration, step 2: player profile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Oswald:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:#f5f5f4;color:#141414}
+a{color:#c8102e}a:hover{color:#9e0c24}
+.disp{font-family:Oswald,"Arial Narrow",Impact,sans-serif;text-transform:uppercase;letter-spacing:0.02em;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 20px;border-radius:6px;background:#c8102e;color:#fff;font-weight:600;font-size:16px;text-decoration:none;border:0;cursor:pointer}
+.btn:hover{background:#9e0c24;color:#fff}
+.btn-ghost{background:#fff;color:#141414;border:1px solid #e4e4e7}
+.btn-ghost:hover{background:#f5f5f4;color:#141414}
+.pill{display:inline-block;border-radius:4px;padding:3px 8px;font-size:12px;font-weight:600}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:16px;box-sizing:border-box}
+.lbl{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.hint{font-size:12px;color:#5f6368;line-height:1.5}
+.in{width:100%;box-sizing:border-box;height:44px;border:1px solid #e4e4e7;border-radius:6px;background:#fff;padding:0 12px;font:inherit;font-size:16px;color:#141414}
+.in::placeholder{color:#8a8f94}
+.ta{width:100%;box-sizing:border-box;min-height:88px;border:1px solid #e4e4e7;border-radius:6px;background:#fff;padding:10px 12px;font:inherit;font-size:15px;color:#141414;resize:vertical}
+.sel{width:100%;box-sizing:border-box;height:44px;border:1px solid #e4e4e7;border-radius:6px;background:#fff;padding:0 12px;font:inherit;font-size:16px;color:#141414;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23141414' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center}
+.chip{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:999px;border:1px solid #e4e4e7;background:#fff;font-size:14px;font-weight:500;color:#141414;font-family:inherit;cursor:pointer}
+.chip-on{background:#141414;border-color:#141414;color:#fff}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1px solid #e4e4e7;border-radius:6px;background:#fff;padding:12px;cursor:pointer}
+.opt-on{border-color:#c8102e;background:#c8102e0d}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid #8a8f94;box-sizing:border-box;flex-shrink:0;margin-top:1px;background:#fff}
+.radio-on{border:6px solid #c8102e}
+.check{width:20px;height:20px;border-radius:4px;border:2px solid #8a8f94;box-sizing:border-box;flex-shrink:0;margin-top:1px;background:#fff}
+.check-on{border-color:#c8102e;background:#c8102e url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'><path d='M5 12l5 5 9-10'/></svg>") center/14px no-repeat}
+.avatar{width:36px;height:36px;border-radius:6px;background:#141414;color:#fff;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-size:15px;flex-shrink:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 2040px; box-sizing: border-box; display: flex; flex-direction: column; background: #f5f5f4;">
+  <header style="background: #141414; color: #fff; height: 56px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="disp" style="font-size: 18px;">PlayMakers <span style="color: #c8102e;">Club</span></span>
+    <a href="#save" style="color: #ffffffcc; text-decoration: none; font-size: 14px; font-weight: 600;">Save and exit</a>
+  </header>
+  <div style="background: #fff; border-bottom: 1px solid #e4e4e7; padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 8px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5f6368;">Step 2 of 6</span>
+      <span style="font-size: 12px; color: #5f6368;">Women's 5v5 · Tempe Wed · Fall 26</span>
+    </div>
+    <div style="height: 4px; background: #e4e4e7; border-radius: 2px; overflow: hidden;"><div style="height: 4px; width: 33%; background: #c8102e;"></div></div>
+    <h1 class="disp" style="margin: 0; font-size: 26px; line-height: 1.05;">Player profile</h1>
+  </div>
+  <main style="padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 16px; flex-grow: 1;">
+    <p class="hint" style="margin: 0;">This is your draft card. Captains see your answers and a computed tier; they never see a number you did not give them.</p>
+    <section class="card" style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 class="disp" style="margin: 0; font-size: 18px;">Positions</h2>
+      
+      <div><label class="lbl">Positions I have played</label><div style="display: flex; flex-wrap: wrap; gap: 8px;"><button type="button" class="chip">QB</button><button type="button" class="chip chip-on">WR</button><button type="button" class="chip">RB</button><button type="button" class="chip chip-on">CB</button><button type="button" class="chip">LB</button><button type="button" class="chip">Safety</button><button type="button" class="chip">Rusher</button><button type="button" class="chip">N/A</button></div><p class="hint" style="margin: 6px 0 0;">Pick every one that applies.</p></div>
+      <div><label class="lbl">Preferred position, offense</label><select class="sel"><option>WR</option></select></div>
+      <div><label class="lbl">Preferred position, defense</label><select class="sel"><option>CB</option></select></div>
+    </section>
+    <section class="card" style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 class="disp" style="margin: 0; font-size: 18px;">Quarterback</h2>
+      
+      <div><label class="lbl">Would you be a designated QB this season?</label><div style="display: flex; flex-direction: column; gap: 8px;"><label class="opt"><span class="radio"></span><span style="display: block;"><span style="display: block; font-weight: 600; font-size: 15px;">Yes</span><span style="display: block; font-size: 13px; color: #5f6368; line-height: 1.5; margin-top: 2px;">Put me at QB. Counts toward the QB supply for the draft.</span></span></label><label class="opt opt-on"><span class="radio radio-on"></span><span style="display: block;"><span style="display: block; font-weight: 600; font-size: 15px;">Prefer not to, but I will if a team needs one</span><span style="display: block; font-size: 13px; color: #5f6368; line-height: 1.5; margin-top: 2px;">Backup pool. Captains see this as reluctant.</span></span></label><label class="opt"><span class="radio"></span><span style="display: block;"><span style="display: block; font-weight: 600; font-size: 15px;">No</span></span></label></div></div>
+      <div><label class="lbl">Years playing QB</label><select class="sel"><option>1 to 2 years</option></select></div>
+    </section>
+    <section class="card" style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 class="disp" style="margin: 0; font-size: 18px;">Experience</h2>
+      
+      <div><label class="lbl">Years playing flag football</label><select class="sel"><option>3 to 5 years</option></select></div>
+      <div><label class="lbl">Experience type</label><select class="sel"><option>Rec league, some tournaments</option></select></div>
+      <div><label class="lbl">Route tree familiarity</label><select class="sel"><option>I know most routes by name</option></select></div>
+      <div><label class="lbl">Athletic history <span style="font-weight: 400; color: #5f6368;">(optional)</span></label><textarea class="ta" placeholder="Sports you played, at what level, anything a captain should know"></textarea></div>
+    </section>
+    <section class="card" style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 class="disp" style="margin: 0; font-size: 18px;">Height and jersey</h2>
+      
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">      <div><label class="lbl">Height, feet</label><select class="sel"><option>5 ft</option></select></div>
+      <div><label class="lbl">Inches</label><select class="sel"><option>7 in</option></select></div>
+</div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">      <div><label class="lbl">Jersey name</label><input class="in" type="text" placeholder="" value="PANGILINAN"></div>
+      <div><label class="lbl">Number</label><input class="in" type="text" placeholder="" value="12"></div>
+</div>
+      <p class="hint" style="margin: -6px 0 0;">Numbers are checked for duplicates once you are on a team.</p>
+      <div><label class="lbl">Shirt size</label><div style="display: flex; flex-wrap: wrap; gap: 8px;"><button type="button" class="chip">XS</button><button type="button" class="chip">S</button><button type="button" class="chip chip-on">M</button><button type="button" class="chip">L</button><button type="button" class="chip">XL</button><button type="button" class="chip">2XL</button></div></div>
+    </section>
+    <section class="card" style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 class="disp" style="margin: 0; font-size: 18px;">Photo</h2>
+      
+      <div style="display: flex; gap: 14px; align-items: center;"><div style="width: 88px; height: 88px; border-radius: 8px; background: #141414; color: #ffffffb3; display: flex; align-items: center; justify-content: center; font-size: 11px; text-align: center; flex-shrink: 0;">[Headshot]</div><div style="display: flex; flex-direction: column; gap: 8px;"><button type="button" class="btn btn-ghost" style="height: 40px; font-size: 14px; align-self: flex-start;">Upload photo</button><span class="hint">Used on your draft card, the all-star ballot and your profile. Face visible, no sunglasses.</span></div></div>
+    </section>
+    <section class="card" style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 class="disp" style="margin: 0; font-size: 18px;">Social</h2>
+      
+      <div><label class="lbl">Instagram handle <span style="font-weight: 400; color: #5f6368;">(optional)</span></label><input class="in" type="text" placeholder="@yourhandle"><p class="hint" style="margin: 6px 0 0;">So we can tag you in game photos, if your media setting allows it.</p></div>
+      <div><label class="lbl">How did you hear about us?</label><select class="sel"><option>A friend who plays</option></select></div>
+    </section>
+  </main>
+  <div style="position: sticky; bottom: 0; background: #ffffffF2; border-top: 1px solid #e4e4e7; padding: 12px 16px 20px; margin-top: auto;">
+    
+    <div style="display: flex; gap: 10px;">
+      <a href="Draft-1-Identity.dc.html" class="btn btn-ghost" style="width: 96px;">Back</a>
+      <a href="Draft-3-Teammates.dc.html" class="btn" style="flex-grow: 1;">Continue to teammates</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2040}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
