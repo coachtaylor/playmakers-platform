@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   ChipGroup,
   ChipRadioGroup,
@@ -36,6 +36,11 @@ import { STEP_FORM_ID } from "../StepFrame";
 const INCHES = Array.from({ length: 12 }, (_, i) => ({ value: String(i), label: `${i} in` }));
 const FEET = HEIGHT_FEET.map((f) => ({ value: String(f), label: `${f} ft` }));
 
+// Kept under the Server Action body limit set in next.config.ts, and checked here so
+// an oversized photo is a sentence on the form rather than a framework error page.
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 export function ProfileForm({
   programId,
   orgId,
@@ -48,7 +53,24 @@ export function ProfileForm({
   photoUrl: string | null;
 }) {
   const [state, action] = useActionState<StepState, FormData>(saveProfile, {});
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const { registration, member, profile } = bundle;
+
+  function checkPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return setPhotoError(null);
+    if (!PHOTO_TYPES.includes(file.type)) {
+      e.target.value = "";
+      return setPhotoError("Use a JPEG, PNG or WebP photo.");
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      e.target.value = "";
+      return setPhotoError(
+        `That photo is ${(file.size / 1024 / 1024).toFixed(1)} MB. Pick one under 8 MB, or take a screenshot of it first.`,
+      );
+    }
+    setPhotoError(null);
+  }
 
   return (
     <form id={STEP_FORM_ID} action={action} className="flex flex-1 flex-col">
@@ -225,11 +247,19 @@ export function ProfileForm({
                 type="file"
                 name="photo"
                 accept="image/jpeg,image/png,image/webp"
+                onChange={checkPhoto}
                 aria-label={photoUrl ? "Replace your photo" : "Upload a photo"}
+                aria-describedby="photo-hint"
                 className="text-sm file:mr-3 file:h-10 file:rounded-md file:border file:border-line file:bg-surface file:px-4 file:text-sm file:font-semibold file:text-ink"
               />
-              <span className="text-xs leading-relaxed text-muted">
+              {photoError && (
+                <span role="alert" className="text-xs font-semibold text-pmc-red">
+                  {photoError}
+                </span>
+              )}
+              <span id="photo-hint" className="text-xs leading-relaxed text-muted">
                 Used on your draft card, the all-star ballot and your profile. Face visible, no sunglasses.
+                JPEG, PNG or WebP, up to 8 MB.
               </span>
             </div>
           </div>
