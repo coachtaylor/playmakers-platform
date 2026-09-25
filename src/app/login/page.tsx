@@ -1,4 +1,5 @@
 import { Shell, Card } from "@/components/Shell";
+import { LinkError } from "./LinkError";
 import { LoginForm } from "./LoginForm";
 
 export default async function LoginPage({
@@ -16,6 +17,7 @@ export default async function LoginPage({
             Use the email you registered with. We&apos;ll send you a link, no password needed.
           </p>
         </div>
+        <LinkError />
         {error === "link" && (
           <p className="rounded-md bg-pmc-red/10 p-3 text-sm text-pmc-red" role="alert">
             That sign-in link didn&apos;t work. It may have expired or been opened in a different browser. Request a
