@@ -39,9 +39,28 @@ function nextHref(formData: FormData, programId: string, step: number) {
 export async function beginRegistration(prev: StepState, formData: FormData): Promise<StepState> {
   const programId = text(formData, "program_id");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("start_registration", { p_program: programId });
+  // The invite token, when they arrived on a teammate's link. An unknown or revoked
+  // one is ignored: it must never stand between someone and their own registration.
+  const { error } = await supabase.rpc("start_registration", {
+    p_program: programId,
+    p_invite: text(formData, "invite") || null,
+  });
   if (error) return { error: friendly(error.message) };
   redirect(stepHref(programId, 1));
+}
+
+/** For someone who already had a registration open when the invite link arrived. */
+export async function claimInvite(prev: StepState, formData: FormData): Promise<StepState> {
+  const programId = text(formData, "program_id");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("claim_invite", {
+    p_registration: text(formData, "registration_id"),
+    p_invite: text(formData, "invite"),
+  });
+  if (error) return { error: friendly(error.message) };
+
+  const next = text(formData, "next");
+  redirect(next.startsWith(`/register/${programId}`) ? next : `/register/${programId}`);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -164,6 +183,39 @@ export async function addTeammate(prev: StepState, formData: FormData): Promise<
     p_name: text(formData, "invite_name") || null,
     p_phone: text(formData, "invite_phone") || null,
     p_handle: text(formData, "invite_handle") || null,
+  });
+  if (error) return { error: friendly(error.message) };
+
+  revalidatePath(`/register/${programId}/teammates`);
+  return {};
+}
+
+/**
+ * Correcting an invited teammate's details. Changing the number or the handle mints a
+ * new token, so the message already sent stops working — the point of the whole design.
+ * A player who is registered is not editable; the RPC refuses it.
+ */
+export async function editTeammate(prev: StepState, formData: FormData): Promise<StepState> {
+  const programId = text(formData, "program_id");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_teammate_invite", {
+    p_request: text(formData, "request_id"),
+    p_name: text(formData, "invite_name") || null,
+    p_phone: text(formData, "invite_phone") || null,
+    p_handle: text(formData, "invite_handle") || null,
+  });
+  if (error) return { error: friendly(error.message) };
+
+  revalidatePath(`/register/${programId}/teammates`);
+  return {};
+}
+
+/** Records that the player sent the link themselves, since we don't text it for them. */
+export async function markInviteSent(prev: StepState, formData: FormData): Promise<StepState> {
+  const programId = text(formData, "program_id");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("mark_invite_sent", {
+    p_request: text(formData, "request_id"),
   });
   if (error) return { error: friendly(error.message) };
 

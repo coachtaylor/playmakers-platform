@@ -43,7 +43,8 @@ Then steps 3 to 8 of the DRAFT flow are shared.
 - `qb_willing` is three states: yes | reluctant | no. Never collapse to boolean.
 - Height is two selects (ft, in), stored as integers.
 - Teammate requests: max 2 per registration; a request counts only when mutual. Unregistered
-  invitees get their own revocable link — see "Teammate invites" below.
+  invitees get their own revocable link, and changing the number revokes it — see "Teammate
+  invites" below.
 - Sub availability defaults off. When on: locations[], nights[], notice_hours, positions[].
 - Media consent is its own field on member (public | league_only | none), never inside the waiver.
   Any value lets the player register.
@@ -64,11 +65,19 @@ Full field lists are in the registration spec.
 
 Added for teammate invites: `teammate_request.invite_token`, `.invite_sent_at`.
 
-## Teammate invites (agreed 2026-09-25, not built)
+## Teammate invites (agreed 2026-09-25, built 2026-09-25)
 
-Step 3 shipped with an invite you cannot see a number for or correct, and with an invited
-person's contact details hidden. Both are wrong. The model below replaces phone matching as
-the way an invite binds.
+Built in `supabase/migrations/20260922000006_teammate_invites.sql` and on step 3. The model
+below is what the code does; the notes on why are worth keeping before anyone changes it.
+
+Two things were decided while building and are not in the design above:
+
+- **The registered-player match happens when the request is created**, not in a preview step.
+  A lookup that answers "is this number a player?" without writing anything is the
+  enumeration oracle this section warns about. Matching at insert costs a request slot and
+  leaves a row behind, so the card says "We found a match" after the fact instead of before.
+- **Sending is manual.** The card shows the link with a copy button; `mark_invite_sent`
+  records that the player copied it, so the card can say "link sent".
 
 **Each invite gets its own token.** Generated when the request is created. The message carries
 `/register/{programId}?invite={token}`. Binding happens on the token, so a mistyped number can
@@ -86,9 +95,9 @@ own registration.
 they will go to the site and sign up. It stays safe because both paths read the current row,
 so changing the number kills both at once.
 
-**Fix while in here:** matching only runs inside `start_registration` today, so an invite sent
-to someone who *already* registered never activates — it sits as "not registered yet" forever
-and burns one of the two slots. `request_teammate` should match an existing member at insert.
+**Fixed while in here:** matching used to run only inside `start_registration`, so an invite
+sent to someone who *already* registered never activated — it sat as "not registered yet"
+forever and burned one of the two slots. `request_teammate` now matches at insert.
 
 Screen behaviour on step 3:
 
@@ -108,6 +117,14 @@ Screen behaviour on step 3:
 a number and opt-out compliance. Until then, show the invite link on the card with a copy
 button so a player can send it themselves — which also makes the whole token path testable.
 
+What the code adds, for anyone reading the migration: `digits_of` / `handle_of` (one normal
+form for both matching paths, US country code dropped), `new_invite_token`,
+`match_registered_member`, `update_teammate_invite`, `mark_invite_sent`, `invite_preview`
+(granted to `anon`, because the link is opened before signing in), `bind_invite_token`,
+`claim_invite`, and `start_registration(program, invite)` — the one-argument form is dropped,
+so any caller must pass both. Retyping the same number in a different format does not revoke
+the link, because both sides compare the normal form.
+
 ## Suggested build order
 
 1. ~~Migration: the tables above plus RLS. RPCs: `start_registration`, `save_registration_step`,
@@ -116,7 +133,7 @@ button so a player can send it themselves — which also makes the whole token p
 2. ~~Shared form components (step header, sticky bar, chips, option cards).~~ Done, in
    `src/components/form.tsx`.
 3. ~~DRAFT flow end to end against the Fall 26 demo program, saving each step.~~ Done.
-4. Teammate invites: tokens, revocation, the registered-player match. Section above.
+4. ~~Teammate invites: tokens, revocation, the registered-player match.~~ Done. Section above.
 5. BYOT branch. Schema and RPCs exist; only the screens are missing.
 6. Public homepage at `/` reading live programs from the DB.
 7. Commissioner: registrations list, QB supply counter (hard Yes vs planned teams, reluctant pool).

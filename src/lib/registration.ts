@@ -116,6 +116,23 @@ export type TeammateRequest = {
   name: string | null;
   initials: string | null;
   mutual: boolean;
+  /** What the requester typed, never what the player has on their own record. */
+  invite_name: string | null;
+  invite_phone: string | null;
+  invite_handle: string | null;
+  /** Null once the invite is bound, withdrawn, or its contact details changed. */
+  invite_token: string | null;
+  invite_sent_at: string | null;
+  /** An invite by phone or handle that turned out to name someone already registered. */
+  matched_from_invite: boolean;
+};
+
+/** `invite_preview()` — what an invite link shows before anyone signs in. */
+export type InvitePreview = {
+  program_id: string;
+  requester_name: string;
+  requester_initials: string;
+  invited_name: string | null;
 };
 
 export type Agreement = {
@@ -367,6 +384,19 @@ export function registrationIsOpen(p: ProgramPublic, now = Date.now()) {
   if (opens !== null && now < opens) return false;
   if (closes !== null && now > closes) return false;
   return true;
+}
+
+/** "(602) 555-0100" for a ten digit number, and whatever was stored for anything else. */
+export function formatPhone(digits: string | null | undefined) {
+  if (!digits) return "";
+  const d = digits.replace(/\D/g, "");
+  if (d.length !== 10) return digits;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
+/** The link an invited teammate opens. One token per invite, revoked when it changes. */
+export function invitePath(programId: string, token: string) {
+  return `/register/${programId}?invite=${encodeURIComponent(token)}`;
 }
 
 export function heightLabel(ft: number | null, inches: number | null) {

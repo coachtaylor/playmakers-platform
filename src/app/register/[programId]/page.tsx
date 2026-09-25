@@ -1,23 +1,44 @@
 import Link from "next/link";
 import { Shell, StatusPill } from "@/components/Shell";
-import { buttonPrimary } from "@/components/form";
+import { Avatar, buttonPrimary } from "@/components/form";
 import {
   dateOrPlaceholder,
   formatLeagueDate,
   formatMoneyShort,
+  invitePath,
   programTitle,
   programWhere,
   registrationIsOpen,
   resumeHref,
   divisionLabel,
+  stepHref,
+  type InvitePreview,
   type RegistrationBundle,
 } from "@/lib/registration";
 import { loadProgram } from "./data";
-import { RegisterButton } from "./RegisterButton";
+import { ClaimInviteButton, RegisterButton } from "./RegisterButton";
 
-export default async function ProgramPage({ params }: { params: Promise<{ programId: string }> }) {
+export default async function ProgramPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ programId: string }>;
+  searchParams: Promise<{ invite?: string | string[] }>;
+}) {
   const { programId } = await params;
+  const { invite: raw } = await searchParams;
+  const token = typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null;
   const { supabase, program, user } = await loadProgram(programId);
+
+  // A teammate's invite link. A revoked or unknown token reads as null here, which the
+  // page says plainly and then gets out of the way: it never blocks someone's own
+  // registration.
+  let preview: InvitePreview | null = null;
+  if (token) {
+    const { data } = await supabase.rpc("invite_preview", { p_token: token });
+    preview = (data as InvitePreview | null) ?? null;
+  }
+  const invite = preview?.program_id === programId ? token : null;
 
   // Signed in? Pick up where they left off rather than starting again.
   let bundle: RegistrationBundle | null = null;
@@ -31,6 +52,10 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
   const fee = program.fees?.amount_cents ?? null;
   const plan = program.fees?.plan;
   const done = bundle?.registration.status === "complete";
+  // Signing in comes back here, invite and all.
+  const signInHref = `/login?next=${encodeURIComponent(
+    invite ? invitePath(programId, invite) : `/register/${programId}`,
+  )}`;
 
   return (
     <Shell
@@ -38,10 +63,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
       signedIn={Boolean(user)}
       action={
         user ? undefined : (
-          <Link
-            href={`/login?next=${encodeURIComponent(`/register/${programId}`)}`}
-            className="text-sm font-semibold text-white/80 hover:text-white"
-          >
+          <Link href={signInHref} className="text-sm font-semibold text-white/80 hover:text-white">
             Sign in
           </Link>
         )
@@ -53,6 +75,37 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
       </div>
 
       <div className="flex flex-1 flex-col gap-4 px-4 pb-6 pt-5">
+        {invite && preview ? (
+          <section className="flex items-center gap-3 rounded-lg border border-pmc-red/30 bg-pmc-red/5 p-3.5">
+            <Avatar initials={preview.requester_initials} />
+            <div className="flex flex-col gap-1">
+              <p className="text-sm leading-relaxed">
+                <span className="font-semibold">{preview.requester_name}</span> wants to be drafted with
+                you. Register and we&apos;ll put the request together.
+              </p>
+              {preview.invited_name && (
+                <p className="text-xs leading-relaxed text-muted">
+                  Sent to {preview.invited_name} — if that isn&apos;t you, register on your own and ignore
+                  the request.
+                </p>
+              )}
+            </div>
+          </section>
+        ) : token && preview ? (
+          <section className="rounded-lg border border-line bg-ground p-3.5 text-sm leading-relaxed">
+            That invite is for a different league.{" "}
+            <Link href={`/register/${preview.program_id}`} className="font-semibold text-pmc-red underline">
+              Open it here
+            </Link>
+            , or read about this one below.
+          </section>
+        ) : token ? (
+          <section className="rounded-lg border border-line bg-ground p-3.5 text-sm leading-relaxed text-muted">
+            That invite link is no longer active — whoever sent it may have corrected the number. You can
+            still register below, and they can ask you again.
+          </section>
+        ) : null}
+
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap gap-1.5">
             <StatusPill tone="red">{isDraft ? "Draft league" : "Bring your own team"}</StatusPill>
@@ -115,7 +168,16 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
           <span className="text-xs text-muted">per player{plan ? " · payment plans" : ""}</span>
         </div>
 
-        {done ? (
+        {bundle && invite ? (
+          // They already had a registration, so the token attaches on its own.
+          <ClaimInviteButton
+            programId={programId}
+            registrationId={bundle.registration.id}
+            invite={invite}
+            next={done ? stepHref(programId, 3) : resumeHref(programId, bundle)}
+            label={done ? "Add the request" : "Accept and keep going"}
+          />
+        ) : done ? (
           <Link href={`/register/${programId}/done`} className={`${buttonPrimary} flex-grow`}>
             You&apos;re registered
           </Link>
@@ -127,10 +189,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
             .
           </span>
         ) : !user ? (
-          <Link
-            href={`/login?next=${encodeURIComponent(`/register/${programId}`)}`}
-            className={`${buttonPrimary} flex-grow`}
-          >
+          <Link href={signInHref} className={`${buttonPrimary} flex-grow`}>
             Sign in to register
           </Link>
         ) : bundle ? (
@@ -138,7 +197,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
             Finish registering
           </Link>
         ) : (
-          <RegisterButton programId={programId} label="Register" />
+          <RegisterButton programId={programId} label="Register" invite={invite} />
         )}
       </div>
     </Shell>

@@ -98,7 +98,12 @@ Rules the schema enforces, not just the UI:
 - `qb_willing` is three states (yes / reluctant / no), never a boolean.
 - Height is two integers (`height_ft`, `height_in`).
 - At most 2 teammate requests per registration, and a request only counts when it is mutual.
-  Someone who hasn't registered is held by phone or handle and matched when they do.
+  Someone who hasn't registered gets their own invite link (`/register/[programId]?invite=…`).
+  Correcting their number or removing the request revokes that link, so a text sent to the
+  wrong number stops working; a dead or unknown token never blocks that person's own
+  registration. A number or handle that names a player who is already registered binds
+  straight away, and their details then show but cannot be edited. Nothing sends the text:
+  the card shows the link with a copy button.
 - Sub availability is off by default; turning it off clears the locations, nights and notice.
 - Media consent stays a member field, outside the waiver. Any value lets a player register.
 - Waivers are versioned; acceptance is recorded by version id with a timestamp and IP.

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { loadStep } from "../data";
 import { StepFrame } from "../StepFrame";
 import { TeammatesForm } from "./TeammatesForm";
@@ -13,12 +14,18 @@ export default async function TeammatesStep({ params }: { params: Promise<{ prog
     p_query: null,
   });
 
+  // Invite links have to be pasteable into a text message, so they need the origin.
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const origin = host ? `${h.get("x-forwarded-proto") ?? "http"}://${host}` : "";
+
   return (
     <StepFrame program={program} step={3} exitAsLink>
       <TeammatesForm
         programId={programId}
         bundle={bundle}
         candidates={(data ?? []) as TeammateCandidate[]}
+        origin={origin}
       />
     </StepFrame>
   );
