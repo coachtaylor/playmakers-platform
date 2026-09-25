@@ -43,7 +43,7 @@ Then steps 3 to 8 of the DRAFT flow are shared.
 - `qb_willing` is three states: yes | reluctant | no. Never collapse to boolean.
 - Height is two selects (ft, in), stored as integers.
 - Teammate requests: max 2 per registration; a request counts only when mutual. Unregistered
-  invitees get a link; the request activates when they register.
+  invitees get their own revocable link — see "Teammate invites" below.
 - Sub availability defaults off. When on: locations[], nights[], notice_hours, positions[].
 - Media consent is its own field on member (public | league_only | none), never inside the waiver.
   Any value lets the player register.
@@ -62,16 +62,64 @@ roster_spot.source, waiver_version, waiver_acceptance, credit_ledger, refund_req
 program.format_type, program.roster_cap, program.composition_rules, program.fees.
 Full field lists are in the registration spec.
 
+Added for teammate invites: `teammate_request.invite_token`, `.invite_sent_at`.
+
+## Teammate invites (agreed 2026-09-25, not built)
+
+Step 3 shipped with an invite you cannot see a number for or correct, and with an invited
+person's contact details hidden. Both are wrong. The model below replaces phone matching as
+the way an invite binds.
+
+**Each invite gets its own token.** Generated when the request is created. The message carries
+`/register/{programId}?invite={token}`. Binding happens on the token, so a mistyped number can
+never attach a stranger: attaching requires someone to have opened that particular link.
+
+**Changing the number or handle, or removing the request, revokes the token.** The already-sent
+message becomes a dead link. This is the point of the whole design — a text that went to the
+wrong person must stop working the moment the player notices.
+
+**A dead or unknown token still lets the person register.** Show "this invite is no longer
+active" and carry on to a normal program page. Revoking an invite must never block a stranger's
+own registration.
+
+**Phone and handle matching stays as a fallback**, because most people will not tap the link;
+they will go to the site and sign up. It stays safe because both paths read the current row,
+so changing the number kills both at once.
+
+**Fix while in here:** matching only runs inside `start_registration` today, so an invite sent
+to someone who *already* registered never activates — it sits as "not registered yet" forever
+and burns one of the two slots. `request_teammate` should match an existing member at insert.
+
+Screen behaviour on step 3:
+
+- Show the phone number (and handle) on an invited person's card. Name, phone and handle are
+  editable while they are unregistered.
+- When the contact matches someone already registered: "This player is already registered for
+  this league", with the option to select them. Name and phone display, neither is editable.
+- Match on the exact number only, show the same "First L." form used everywhere else, and echo
+  back *the number the requester typed*, never the one on the member's record. Otherwise this
+  becomes a lookup that turns phone numbers into league members, and someone can enumerate
+  numbers to find out who is playing.
+- Selecting a registered player just creates the request. They already see "requested you" on
+  their own step 3. No member-to-member texting: it costs money per message, needs opt-out
+  handling, and lets anyone text anyone by adding and removing a request.
+
+**SMS is not part of this.** No provider is wired up, and doing it properly means an account,
+a number and opt-out compliance. Until then, show the invite link on the card with a copy
+button so a player can send it themselves — which also makes the whole token path testable.
+
 ## Suggested build order
 
-1. Migration: the tables above plus RLS. RPCs: `start_registration`, `save_registration_step`,
+1. ~~Migration: the tables above plus RLS. RPCs: `start_registration`, `save_registration_step`,
    `request_teammate`, `create_team`, `join_team_by_code`, `request_to_join`, `approve_join`,
-   `set_sub_availability`, `accept_waiver`, `complete_registration`.
-2. Shared form components (step header, sticky bar, chips, option cards).
-3. DRAFT flow end to end against the Fall 26 demo program, saving each step.
-4. BYOT branch.
-5. Public homepage at `/` reading live programs from the DB.
-6. Commissioner: registrations list, QB supply counter (hard Yes vs planned teams, reluctant pool).
+   `set_sub_availability`, `accept_waiver`, `complete_registration`.~~ Done.
+2. ~~Shared form components (step header, sticky bar, chips, option cards).~~ Done, in
+   `src/components/form.tsx`.
+3. ~~DRAFT flow end to end against the Fall 26 demo program, saving each step.~~ Done.
+4. Teammate invites: tokens, revocation, the registered-player match. Section above.
+5. BYOT branch. Schema and RPCs exist; only the screens are missing.
+6. Public homepage at `/` reading live programs from the DB.
+7. Commissioner: registrations list, QB supply counter (hard Yes vs planned teams, reluctant pool).
 
 ## Open placeholders in the mockups
 
